@@ -1,0 +1,72 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Node / Frontend build artifacts
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python artifacts and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+ENV/
+env/
+.venv/
+backend/venv/
+
+# Environment and sensitive files
+.env
+.env.local
+.env.*.local
+*.env
+*.pem
+*.key
+*.keystore
+*.jks
+
+# IDE & Editor files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Android build outputs & local caches
+.gradle/
+android/.gradle/
+android/build/
+android/app/build/
+local.properties
+Captures/
+.externalNativeBuild/
+.cxx/

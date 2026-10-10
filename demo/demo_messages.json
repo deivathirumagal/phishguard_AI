@@ -1,0 +1,32 @@
+[
+  {
+    "name": "DEMO 1 — Legitimate Personal Message",
+    "message": "Hey, are we still meeting for lunch today?",
+    "expected_general_category": "Legitimate",
+    "purpose": "Demonstrates routine, safe personal conversation with zero suspicious indicators, resulting in a low risk score and suppressed security alerts."
+  },
+  {
+    "name": "DEMO 2 — Urgent Banking Phishing Attack",
+    "message": "URGENT! Your bank account has been suspended. Verify your account immediately by clicking http://bit.ly/example",
+    "expected_general_category": "Phishing",
+    "purpose": "Demonstrates severe smishing combining artificial urgency, fear of account suspension, credential verification, and an obfuscated bit.ly link, triggering critical risk and an immediate security alert."
+  },
+  {
+    "name": "DEMO 3 — Package Delivery Customs Scam",
+    "message": "FedEx: Your package is waiting. Pay the customs fee immediately at http://bit.ly/example",
+    "expected_general_category": "Phishing",
+    "purpose": "Demonstrates how the hybrid heuristic engine flags brand impersonation and shortened URLs, escalating borderline ML predictions to phishing."
+  },
+  {
+    "name": "DEMO 4 — Prize & Cash Reward Lure",
+    "message": "Congratulations! You have won a cash reward. Claim your prize now at http://bit.ly/example",
+    "expected_general_category": "Phishing",
+    "purpose": "Demonstrates lottery and prize baiting targeting user curiosity/greed paired with an obfuscated URL shortener."
+  },
+  {
+    "name": "DEMO 5 — Safe Project Meeting SMS",
+    "message": "Don't forget our project meeting at 4 PM tomorrow.",
+    "expected_general_category": "Legitimate",
+    "purpose": "Demonstrates routine institutional scheduling communication without deceptive triggers, confirming low risk and no false alarms."
+  }
+]

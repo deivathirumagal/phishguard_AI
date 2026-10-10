@@ -1,0 +1,58 @@
+[
+  {
+    "id": "DEMO-01",
+    "category": "Legitimate",
+    "expected_risk_level": "Low Risk",
+    "message": "Hey, are we still meeting for lunch today?",
+    "description": "Typical daily personal communication with zero suspicious keywords or links."
+  },
+  {
+    "id": "DEMO-02",
+    "category": "Legitimate",
+    "expected_risk_level": "Low Risk",
+    "message": "Don't forget our project meeting at 4 PM tomorrow in Room 302.",
+    "description": "Workplace scheduling message containing numbers and times, demonstrating zero false positive triggers."
+  },
+  {
+    "id": "DEMO-03",
+    "category": "Legitimate with Benign URL",
+    "expected_risk_level": "Medium Risk",
+    "message": "Please read the documentation at https://www.wikipedia.org before the meeting.",
+    "description": "Legitimate message with an unshortened standard HTTPS link."
+  },
+  {
+    "id": "DEMO-04",
+    "category": "Phishing / Smishing (Critical)",
+    "expected_risk_level": "Critical Risk",
+    "message": "URGENT! Your bank account has been suspended. Verify your account immediately by clicking http://bit.ly/example",
+    "description": "Multi-vector smishing lure triggering Urgency, Fear/Threat, Account Verification, Authority Impersonation, and a shortened URL."
+  },
+  {
+    "id": "DEMO-05",
+    "category": "Package Delivery Lure (Medium/High)",
+    "expected_risk_level": "Medium Risk",
+    "message": "FedEx: Your package is waiting. Pay the customs fee immediately at http://bit.ly/example",
+    "description": "Courier delivery smishing tactic leveraging urgency and a shortened link."
+  },
+  {
+    "id": "DEMO-06",
+    "category": "Lottery / Cash Reward Lure (High)",
+    "expected_risk_level": "High Risk",
+    "message": "Congratulations! You have won a cash reward. Claim your prize now at http://bit.ly/example",
+    "description": "Financial lure offering unexpected prizes with a shortened link."
+  },
+  {
+    "id": "DEMO-07",
+    "category": "Tax Authority Impersonation (Medium/High)",
+    "expected_risk_level": "Medium Risk",
+    "message": "IRS alert: You owe unpaid taxes. Call customer support immediately or click http://bit.ly/irs-pay",
+    "description": "Authority impersonation exploiting government agency fear and urgency."
+  },
+  {
+    "id": "DEMO-08",
+    "category": "Credential Verification",
+    "expected_risk_level": "Medium Risk",
+    "message": "Verify your account immediately.",
+    "description": "Direct credential harvesting phrase testing social engineering heuristic triggers."
+  }
+]

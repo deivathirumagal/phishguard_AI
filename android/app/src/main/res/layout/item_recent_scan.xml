@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_card"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/item_sender"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="+1-555-0199"
+            android:textColor="@color/accent_sky"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/item_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sep 20, 14:30"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/item_message_snippet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="URGENT! Your bank account has been suspended. Verify your account..."
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:layout_marginTop="4dp" />
+
+    <LinearLayout
+        android:id="@+id/item_badge_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        android:padding="6dp">
+
+        <TextView
+            android:id="@+id/item_verdict"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Phishing"
+            android:textColor="@color/danger_red"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/item_risk_score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="100/100"
+            android:textColor="@color/danger_red"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">PhishGuard AI</string>
+    <string name="app_tagline">Mobile SMS Threat Detection Companion</string>
+    <string name="status_protected">SMS Protection ACTIVE</string>
+    <string name="backend_connected">Connected to AI Engine</string>
+    <string name="recent_detections">Recent SMS Detections</string>
+</resources>
