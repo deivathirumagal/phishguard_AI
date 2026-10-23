@@ -65,7 +65,14 @@ except Exception as e:
 app = Flask(__name__)
 
 # Enable Cross-Origin Resource Sharing (CORS) for frontend integration
-CORS(app)
+# Allows specific frontend origin in production (e.g., Vercel) while maintaining local dev access
+frontend_origin = os.environ.get("FRONTEND_ORIGIN")
+if frontend_origin:
+    allowed_origins = [origin.strip() for origin in frontend_origin.split(",") if origin.strip()]
+    CORS(app, origins=allowed_origins)
+else:
+    # Allow all origins if FRONTEND_ORIGIN is not specified (e.g., development or open API)
+    CORS(app)
 
 
 # =====================================================================
@@ -563,5 +570,6 @@ def predict():
 # =====================================================================
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
 
