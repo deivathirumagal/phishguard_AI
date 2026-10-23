@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Navbar from "../Components/Navbar";
-import RealTimeAlert from "../Components/RealTimeAlert";
+import Navbar from "../components/Navbar";
+import RealTimeAlert from "../components/RealTimeAlert";
 import { saveScan, getScanHistory } from "../utils/historyStorage";
 import { processIncomingMessage } from "../services/realtimeDetectionService";
+import { API_ENDPOINTS, API_BASE_URL } from "../services/apiConfig";
 
 function ScanMessage() {
   const [activeTab, setActiveTab] = useState("manual"); // "manual" | "realtime"
@@ -128,7 +129,7 @@ function ScanMessage() {
     setIsRealTimeTrigger(false);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/predict", {
+      const response = await fetch(API_ENDPOINTS.PREDICT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -151,7 +152,7 @@ function ScanMessage() {
     } catch (err) {
       console.error("Scan error:", err);
       setError(
-        "Unable to connect to PhishGuard AI backend. Please make sure the Flask server is running."
+        `Unable to connect to PhishGuard AI backend. Please make sure the Flask server is running at ${API_BASE_URL}.`
       );
     } finally {
       setLoading(false);

@@ -20,6 +20,7 @@
  */
 
 import { saveScan } from "../utils/historyStorage";
+import { API_ENDPOINTS, API_BASE_URL } from "./apiConfig";
 
 // Cache to prevent duplicate processing of the same message in rapid succession
 const recentlyProcessed = new Map();
@@ -83,7 +84,7 @@ export async function processIncomingMessage(rawMessage, options = {}) {
 
   // 3. Dispatch to Flask /predict API
   try {
-    const response = await fetch("http://127.0.0.1:5000/predict", {
+    const response = await fetch(API_ENDPOINTS.PREDICT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -121,7 +122,7 @@ export async function processIncomingMessage(rawMessage, options = {}) {
     return {
       success: false,
       error:
-        "Unable to connect to PhishGuard AI backend. Please make sure the Flask server is running at http://127.0.0.1:5000.",
+        `Unable to connect to PhishGuard AI backend. Please verify the Flask server is running at ${API_BASE_URL}.`,
     };
   }
 }
