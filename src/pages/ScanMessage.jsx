@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import RealTimeAlert from "../components/RealTimeAlert";
@@ -17,8 +17,26 @@ function ScanMessage() {
   const [isRealTimeTrigger, setIsRealTimeTrigger] = useState(false);
   const [recentScans, setRecentScans] = useState([]);
 
+  // Automatic Simulation Loop Controls
+  const [isAutoSimRunning, setIsAutoSimRunning] = useState(false);
+  const [simIndex, setSimIndex] = useState(0);
+  const [currentScenarioName, setCurrentScenarioName] = useState("");
+  const autoSimIntervalRef = useRef(null);
+  const isRequestInProgressRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const simIndexRef = useRef(0);
+
   useEffect(() => {
+    isMountedRef.current = true;
     setRecentScans(getScanHistory().slice(0, 5));
+
+    return () => {
+      isMountedRef.current = false;
+      if (autoSimIntervalRef.current) {
+        clearInterval(autoSimIntervalRef.current);
+        autoSimIntervalRef.current = null;
+      }
+    };
   }, []);
 
   // 5 Standard Faculty Demo Presets (All route through actual /predict backend)
@@ -65,26 +83,42 @@ function ScanMessage() {
     },
   ];
 
-  // Presets for Real-Time Simulation
+  // Presets for Real-Time Simulation (Covering Banking Phishing, Delivery Scams, Reward Scams, and Safe Messages)
   const simulatedPresets = [
     {
       id: "bank",
-      label: "🚨 Banking Smishing",
+      label: "🚨 Banking Phishing",
+      category: "Banking Phishing",
       text: "URGENT: Your Chase checking account has been locked due to suspicious activity. Verify your identity at https://secure-chase-update.tk immediately to avoid suspension.",
     },
     {
       id: "delivery",
       label: "📦 Delivery Scam",
+      category: "Delivery Scam",
       text: "FedEx: Your parcel #94028 could not be delivered due to unpaid customs fee of $2.40. Pay now: http://fedx-customs-pay.com to release package.",
+    },
+    {
+      id: "reward",
+      label: "🎁 Reward Scam",
+      category: "Reward Scam",
+      text: "Congratulations! You have won a cash reward. Claim your prize now at http://bit.ly/example",
     },
     {
       id: "card",
       label: "💳 Credit Card Alert",
+      category: "Banking Phishing",
       text: "ALERT: Unauthorized charge of $499.00 on your Wells Fargo Visa card. If this was not you, call fraud helpline http://wellsfargo-security.biz immediately.",
     },
     {
-      id: "meeting",
+      id: "safe_personal",
+      label: "💬 Safe Personal Chat",
+      category: "Safe Message",
+      text: "Hey, are we still meeting for lunch today?",
+    },
+    {
+      id: "safe_meeting",
       label: "✓ Safe Meeting SMS",
+      category: "Safe Message",
       text: "Hi Alex, just confirming our project presentation at 4:00 PM in Conference Room B. See you there!",
     },
   ];
@@ -159,7 +193,97 @@ function ScanMessage() {
     }
   };
 
-  // Handler for Real-Time Detection Demo
+  // Process a simulated message through the shared real-time pipeline
+  const processSimulatedMessage = useCallback(async (scenario, isFromInterval = false) => {
+    if (!scenario || !scenario.text) return;
+
+    if (isRequestInProgressRef.current) {
+      return; // Prevent overlapping requests
+    }
+
+    isRequestInProgressRef.current = true;
+    if (isMountedRef.current) {
+      setLoading(true);
+      setError("");
+      setDuplicateWarning("");
+      setIsRealTimeTrigger(true);
+      setSimulatedMessage(scenario.text);
+      setCurrentScenarioName(scenario.label || scenario.category || "Sample Inbound");
+    }
+
+    try {
+      const outcome = await processIncomingMessage(scenario.text, {
+        preventDuplicates: true,
+        autoSaveHistory: true,
+      });
+
+      if (!isMountedRef.current) return;
+
+      if (outcome.isDuplicate) {
+        setDuplicateWarning(
+          "⏱️ Duplicate message skipped: This identical message was processed within the last 15 seconds."
+        );
+      } else if (!outcome.success) {
+        setError(outcome.error || "Failed to process simulated incoming message.");
+      } else {
+        setResult(outcome.data);
+        setRecentScans(getScanHistory().slice(0, 5));
+      }
+    } catch (err) {
+      if (isMountedRef.current) {
+        console.error("Simulation error:", err);
+        setError(`Unable to connect to PhishGuard AI backend at ${API_BASE_URL}.`);
+      }
+    } finally {
+      isRequestInProgressRef.current = false;
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  // Stop the running automatic simulation cleanly
+  const stopAutoSimulation = useCallback(() => {
+    if (autoSimIntervalRef.current) {
+      clearInterval(autoSimIntervalRef.current);
+      autoSimIntervalRef.current = null;
+    }
+    if (isMountedRef.current) {
+      setIsAutoSimRunning(false);
+    }
+  }, []);
+
+  // Start the automatic simulation, dispatching sample messages every 5 seconds
+  const startAutoSimulation = useCallback(() => {
+    if (autoSimIntervalRef.current) {
+      clearInterval(autoSimIntervalRef.current);
+      autoSimIntervalRef.current = null;
+    }
+
+    setError("");
+    setDuplicateWarning("");
+    setIsAutoSimRunning(true);
+
+    // Pick current preset and trigger immediately
+    const firstScenario = simulatedPresets[simIndexRef.current % simulatedPresets.length];
+    processSimulatedMessage(firstScenario, true);
+    simIndexRef.current = (simIndexRef.current + 1) % simulatedPresets.length;
+    setSimIndex(simIndexRef.current);
+
+    // Set recurring 5-second interval timer
+    autoSimIntervalRef.current = setInterval(() => {
+      if (!isMountedRef.current) {
+        if (autoSimIntervalRef.current) clearInterval(autoSimIntervalRef.current);
+        return;
+      }
+      const nextScenario = simulatedPresets[simIndexRef.current % simulatedPresets.length];
+      processSimulatedMessage(nextScenario, true);
+      simIndexRef.current = (simIndexRef.current + 1) % simulatedPresets.length;
+      setSimIndex(simIndexRef.current);
+    }, 5000);
+  }, [processSimulatedMessage, simulatedPresets]);
+
+  // Handler for Manual Single Simulation Trigger
   const handleSimulateIncoming = async (overrideText) => {
     const textToProcess = overrideText || simulatedMessage;
     if (!textToProcess || !textToProcess.trim()) {
@@ -167,33 +291,14 @@ function ScanMessage() {
       return;
     }
 
-    setLoading(true);
-    setError("");
-    setDuplicateWarning("");
-    setIsRealTimeTrigger(true);
+    const matchedPreset = simulatedPresets.find((p) => p.text === textToProcess);
+    const scenario = matchedPreset || {
+      text: textToProcess,
+      label: "Custom Inbound Simulation",
+      category: "Custom",
+    };
 
-    const outcome = await processIncomingMessage(textToProcess, {
-      preventDuplicates: true,
-      autoSaveHistory: true,
-    });
-
-    setLoading(false);
-
-    if (outcome.isDuplicate) {
-      setDuplicateWarning(
-        "⏱️ Duplicate message skipped: This identical message was processed within the last 15 seconds."
-      );
-      return;
-    }
-
-    if (!outcome.success) {
-      setError(outcome.error || "Failed to process simulated incoming message.");
-      return;
-    }
-
-    // Success: update active result and refresh recent scans
-    setResult(outcome.data);
-    setRecentScans(getScanHistory().slice(0, 5));
+    await processSimulatedMessage(scenario, false);
   };
 
   // Helper to determine risk styling class based on final label and risk score
@@ -321,6 +426,7 @@ function ScanMessage() {
                 aria-selected={activeTab === "manual"}
                 className={`scan-mode-tab ${activeTab === "manual" ? "active" : ""}`}
                 onClick={() => {
+                  stopAutoSimulation();
                   setActiveTab("manual");
                   setError("");
                   setDuplicateWarning("");
@@ -450,27 +556,57 @@ function ScanMessage() {
             ) : (
               <>
                 <div className="panel-header">
-                  <h3>Incoming Stream Simulator</h3>
-                  <span className="badge-listener">Android Listener Ready</span>
+                  <h3>Real-Time Demo (Simulation)</h3>
+                  {isAutoSimRunning ? (
+                    <span className="sim-active-indicator" id="sim-live-status-badge">
+                      <span className="sim-pulse-dot"></span>
+                      Auto-Stream Active (5s)
+                    </span>
+                  ) : (
+                    <span className="badge-listener">Simulation Ready</span>
+                  )}
                 </div>
 
-                {/* Important Platform Limitation Notice */}
+                {/* Visible Platform Limitation & Simulation Notice */}
                 <div className="platform-limitation-banner" id="platform-limitation-notice">
                   <div className="platform-banner-header">
-                    <span className="platform-icon">📱</span>
-                    <strong>Platform Notice & Architecture Note</strong>
+                    <span className="platform-icon">ℹ️</span>
+                    <strong>Simulation Notice</strong>
                   </div>
-                  <p className="platform-banner-text">
-                    Standard web browsers operate inside an OS security sandbox and <strong>cannot directly intercept phone SMS or system notifications</strong>.
+                  <p className="platform-banner-text" style={{ fontWeight: 600, color: "#38bdf8" }}>
+                    Simulation — uses sample messages; does not monitor actual phone SMS.
                   </p>
                   <p className="platform-banner-subtext">
-                    This interactive simulator exercises PhishGuard's <strong>automated ingestion foundation</strong>, engineered to directly receive and analyze background streams from a companion <strong>Android SMS/Notification Listener Service</strong>.
+                    This interactive simulator exercises PhishGuard AI's real-time interception and automated detection pipeline by dispatching sample incoming messages through the live machine learning backend at regular intervals.
                   </p>
                 </div>
+
+                {/* Auto Simulation Status Bar */}
+                {isAutoSimRunning && (
+                  <div className="sim-status-banner running" id="sim-running-banner">
+                    <div>
+                      <strong>⚡ Automatic Simulation Running:</strong> Sending sample messages every 5 seconds.
+                      {currentScenarioName && (
+                        <div style={{ color: "#94a3b8", fontSize: "11px", marginTop: "2px" }}>
+                          Active Scenario: <span style={{ color: "#f8fafc" }}>{currentScenarioName}</span>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className="primary-btn realtime-btn stop-btn"
+                      onClick={stopAutoSimulation}
+                      id="stop-demo-btn-banner"
+                      style={{ padding: "6px 12px", fontSize: "11px" }}
+                    >
+                      ⏹️ Stop Demo
+                    </button>
+                  </div>
+                )}
 
                 <div className="simulated-input-section">
                   <label htmlFor="simulated-message-input" className="simulated-input-label">
-                    Simulate Incoming SMS / Notification Text:
+                    Simulated Incoming Message Content:
                   </label>
                   <textarea
                     id="simulated-message-input"
@@ -478,18 +614,25 @@ function ScanMessage() {
                     onChange={(e) => setSimulatedMessage(e.target.value)}
                     placeholder="Enter or pick a simulated incoming message to trigger real-time interception..."
                     rows={4}
+                    disabled={isAutoSimRunning}
                   />
                 </div>
 
                 <div className="simulation-presets-section">
-                  <span className="preset-label">Simulate Inbound Scenarios:</span>
+                  <span className="preset-label">Sample Scenarios (Banking, Delivery, Reward, Safe):</span>
                   <div className="sim-preset-grid">
                     {simulatedPresets.map((preset) => (
                       <button
                         key={preset.id}
                         type="button"
                         className="sim-preset-btn"
-                        onClick={() => loadSimulatedPreset(preset.text)}
+                        onClick={() => {
+                          if (!isAutoSimRunning) {
+                            loadSimulatedPreset(preset.text);
+                            setCurrentScenarioName(preset.label);
+                          }
+                        }}
+                        disabled={isAutoSimRunning}
                         title={preset.text}
                       >
                         {preset.label}
@@ -512,27 +655,54 @@ function ScanMessage() {
                   </div>
                 )}
 
-                <div className="scan-actions">
+                <div className="scan-actions" style={{ flexWrap: "wrap", gap: "10px" }}>
+                  {/* Start Demo / Stop Demo Controls */}
+                  {!isAutoSimRunning ? (
+                    <button
+                      id="start-demo-button"
+                      type="button"
+                      onClick={startAutoSimulation}
+                      disabled={loading}
+                      className="primary-btn realtime-btn"
+                      title="Automatically cycle through sample incoming messages every 5 seconds"
+                    >
+                      <span className="radar-pulse">▶️</span>
+                      <span>Start Demo</span>
+                    </button>
+                  ) : (
+                    <button
+                      id="stop-demo-button"
+                      type="button"
+                      onClick={stopAutoSimulation}
+                      className="primary-btn realtime-btn stop-btn"
+                      title="Stop the automated simulation interval"
+                    >
+                      <span>⏹️ Stop Demo</span>
+                    </button>
+                  )}
+
+                  {/* Manual Single-Step Simulation Button */}
                   <button
                     id="simulate-incoming-button"
+                    type="button"
                     onClick={() => handleSimulateIncoming()}
-                    disabled={loading}
-                    className="primary-btn realtime-btn"
+                    disabled={loading || isAutoSimRunning}
+                    className="secondary-btn"
+                    style={{ borderColor: "rgba(56, 189, 248, 0.4)", color: "#e2e8f0" }}
                   >
                     {loading ? (
                       <>
                         <span className="btn-spinner"></span>
-                        <span>Intercepting & Analyzing...</span>
+                        <span>Processing API...</span>
                       </>
                     ) : (
                       <>
-                        <span className="radar-pulse">⚡</span>
-                        <span>Simulate Incoming Message</span>
+                        <span>⚡ Simulate Single Message</span>
                       </>
                     )}
                   </button>
 
-                  {simulatedMessage && (
+                  {simulatedMessage && !isAutoSimRunning && (
                     <button
                       type="button"
                       onClick={handleClearSimulated}

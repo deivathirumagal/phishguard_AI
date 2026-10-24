@@ -15,15 +15,21 @@ export default function RealTimeAlert({ result, onDismiss, isRealTime = true }) 
   if (!result) return null;
 
   const isPhishing = result.label === "Phishing";
+  const isSuspicious = result.label === "Suspicious";
   const isHighRisk = result.risk_level === "High Risk" || result.risk_level === "Critical Risk";
+  const isMediumRisk = result.risk_level === "Medium Risk";
 
-  // Only show the alert if it qualifies as a threat
-  if (!isPhishing && !isHighRisk) {
+  // Show the alert if it qualifies as a threat or suspicious message
+  if (!isPhishing && !isSuspicious && !isHighRisk && !isMediumRisk) {
     return null;
   }
 
   const isCritical = result.risk_level === "Critical Risk";
-  const alertThemeClass = isCritical ? "critical-alert" : "high-alert";
+  const alertThemeClass = isCritical
+    ? "critical-alert"
+    : isSuspicious && !isHighRisk
+    ? "suspicious-alert high-alert"
+    : "high-alert";
 
   return (
     <div
@@ -55,7 +61,7 @@ export default function RealTimeAlert({ result, onDismiss, isRealTime = true }) 
               {isRealTime ? "⚡ REAL-TIME SECURITY INTERCEPT" : "⚠️ SECURITY THREAT WARNING"}
             </div>
             <h3 className="alert-headline">
-              Phishing Threat Detected!
+              {isPhishing ? "Phishing Threat Detected!" : "Suspicious Message Flagged!"}
             </h3>
           </div>
         </div>
@@ -87,8 +93,8 @@ export default function RealTimeAlert({ result, onDismiss, isRealTime = true }) 
       <div className="alert-stats-strip">
         <div className="alert-stat-box">
           <span className="alert-stat-label">AI Verdict</span>
-          <span className="alert-stat-value verdict-badge-phish">
-            {result.label || "Phishing"}
+          <span className={`alert-stat-value ${isPhishing ? "verdict-badge-phish" : "text-amber-400"}`} style={{ color: isPhishing ? "#ef4444" : "#fbbf24" }}>
+            {result.label || (isPhishing ? "Phishing" : "Suspicious")}
           </span>
         </div>
         <div className="alert-stat-box">
