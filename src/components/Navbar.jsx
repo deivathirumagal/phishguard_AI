@@ -36,6 +36,14 @@ function Navbar() {
           How It Works
         </Link>
 
+        <Link to="/login" className={isActive("/login")}>
+          Login
+        </Link>
+
+        <Link to="/signup" className={isActive("/signup")}>
+          Sign Up
+        </Link>
+
         <Link to="/scan" className="nav-button" id="nav-quick-scan-btn">
           ⚡ Quick Scan
         </Link>
